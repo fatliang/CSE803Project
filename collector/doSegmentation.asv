@@ -1,0 +1,34 @@
+function res = doSegmentation(img)
+size_img = size(img);
+img_edge = edge(rgb2gray(img),'canny',[],sqrt(2));
+%do closing
+img_edge = dilate(img_edge,5);
+img_edge = erode(img_edge,5);
+%
+img_label = raster_scan_4(1-img_edge);
+num_label = unique(img_label);
+threshold = size_img(1)*size_img(2)/100;%the area below which are considered as noise
+for i = 1:length(num_label)
+    if num_label(i) ~= 0
+        segment = (img_label == num_label(i));
+        area = sum(sum(segment));
+        if area > threshold
+            %do closing
+            segment = dilate(segment,5);
+            segment = erode(segment,5);
+            %
+            %show the image
+            segment_img = zeros(size_img);
+            for j = 1:size_img(1)
+                for k = 1:size_img(2)
+                    if segment(i,j) == 1
+                      segment_img(i,j,:) = img(i,j,:);    
+                    end
+                end
+            end
+            figure();
+            segment_img = uint8(segment_img);
+            imshow(segment_img);
+        end
+    end
+end

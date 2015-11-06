@@ -1,0 +1,25 @@
+\documentclass{article}
+\begin{document}
+\title{CSE803 Project: Meal Recognition}
+\author{Yuan Liang\ \ \ \ \ \ \ \ \ \ Yi Wang}
+\date{}
+\maketitle
+\section*{Description}
+The goal of this project is to design a computer vision system to recognize the food we have in our daily life. Currently, we plan to classify the following classes: salad, pasta, burger, apple, banana, broccoli, pizza, egg, tomato, rice, strawberry, cookie. Other classes may be added to our system in practice.
+\section*{Methods}
+The machine learning algorithm we will use is SVM. The main features used in recognition will be color histogram and texture feature. For the texture feature, we plan to use the LBP histogram, but better methods may be employed in practice. We will combine the two histograms to generate a multi-dimension vector in classification.
+
+In order to achieve better performance, we will do segmentation first before recognition in order to exclude the irrelevant background. We will use Canny edge detector to seperate the objects in the image basing on the edges. For efficiency purpose, the original images will be scaled down before processing. 
+
+In training, we will manually label the objects in images. For data collection, we will find images and samples from the Internet.
+
+The training program will be written in Matlab to generate the parameters of SVM. For the recognition program, it will depend on the runtime efficiency to use Matlab or C/C++.
+\section*{Time line}
+\begin{itemize}
+	\item Nov.2-Nov.10  Algorithm design
+	\item Nov.11-Nov.18 Programming \& Development
+	\item Nov.19-Nov.21 Data Collection \& Training
+	\item Nov.22-       Performance evaluation \& Final report
+	
+\end{itemize}    
+\end{document}

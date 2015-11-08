@@ -131,7 +131,7 @@ global hist_cur data_filename ind_segment
 class_name = 'default';
 s1.hist = hist_cur;
 s1.name = class_name;
-filename_append = sprintf('_%d.mat',ind_segment);
+filename_append = sprintf('_%d.mat',ind_segment-1);
 save([data_filename filename_append],'-struct','s1');
 printSegment(eventdata,handles);
 

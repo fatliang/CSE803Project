@@ -22,7 +22,7 @@ function varargout = ui_main(varargin)
 
 % Edit the above text to modify the response to help ui_main
 
-% Last Modified by GUIDE v2.5 05-Nov-2015 21:41:52
+% Last Modified by GUIDE v2.5 05-Nov-2015 22:35:53
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -80,16 +80,24 @@ function OpenFileButton_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 [filename, pathname, filterindex] = uigetfile({'*.jpg;*.tif;*.png;*.gif'},'Select Image');
 str = [pathname filename];
-clear img size_img mask num_segment
-global img size_img
-img = imread(str);
+img_tmp = imread(str);
+
+global img size_img data_filename mask array_segment num_segment ind_segment hist_cur
+clear img size_img mask array_segment num_segment ind_segment hist_cur data_filename
+global img size_img data_filename 
+
+img = img_tmp;
 size_img = size(img);
-scale_factor = 5e4/(size_img(1)*size_img(2));
+scale_factor = 2e4/(size_img(1)*size_img(2));
 img = imresize(img,min(scale_factor,1));
+size_img = size(img);
 axes(handles.OriginalImageBrowser);
 imshow(img);
 cla(handles.SegmentBrowser);
 guidata(hObject, handles);
+%data_filename is the file name store the data we get
+data_filename = [pathname 'data\' filename '.mat'];
+save(data_filename,'str');
 
 % --- Executes on selection change in popupmenu1.
 function popupmenu1_Callback(hObject, eventdata, handles)
@@ -114,19 +122,25 @@ if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgr
 end
 
 
-% --- Executes on button press in pushbutton2.
-function pushbutton2_Callback(hObject, eventdata, handles)
-% hObject    handle to pushbutton2 (see GCBO)
+% --- Executes on button press in CollectButton.
+function CollectButton_Callback(hObject, eventdata, handles)
+% hObject    handle to CollectButton (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
+global hist_cur data_filename ind_segment
+class_name = 'default';
+s1.hist = hist_cur;
+s1.name = class_name;
+save(data_filename,'s1','-append');
+printSegment(eventdata,handles);
 
 
-% --- Executes on button press in pushbutton3.
-function pushbutton3_Callback(hObject, eventdata, handles)
-% hObject    handle to pushbutton3 (see GCBO)
+% --- Executes on button press in DiscardButton.
+function DiscardButton_Callback(hObject, eventdata, handles)
+% hObject    handle to DiscardButton (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-
+printSegment(eventdata,handles);
 
 
 function edit1_Callback(hObject, eventdata, handles)
@@ -163,7 +177,9 @@ function ProcessButton_Callback(hObject, eventdata, handles)
 % hObject    handle to ProcessButton (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-global img mask array_segment num_segment ind_segment
+global img mask array_segment num_segment ind_segment hist_cur
+clear mask array_segment num_segment ind_segment hist_cur
+global mask array_segment num_segment ind_segment
 mask = doSegmentation(img);
 array_segment = unique(mask);
 num_segment = length(array_segment);
@@ -172,8 +188,12 @@ printSegment(eventdata, handles);
 guidata(hObject, handles);
 
 function printSegment(eventdata, handles)
+
+%processing the segment
 global img size_img mask array_segment num_segment ind_segment
-threshold = size_img(1)*size_img(2)/400;
+global hist_cur
+
+threshold = size_img(1)*size_img(2)/40;
 
 if ind_segment > num_segment
     return;
@@ -182,7 +202,7 @@ segment = (mask == array_segment(ind_segment));
 area = sum(sum(segment));
 ind_segment = ind_segment+1;
 
-while area < threshold |
+while area < threshold || array_segment(ind_segment-1) == 0
     if ind_segment > num_segment
         return;
     end
@@ -194,8 +214,11 @@ end
 %do closing
 segment = dilate(segment,5);
 segment = erode(segment,5);
-%
+
+%calculate histogram
+hist_cur = cal_feature_hist(img,segment);
 %show the image
+
 segment_img = zeros(size_img);
 for i = 1:size_img(1)
     for j = 1:size_img(2)
@@ -208,6 +231,3 @@ end
 axes(handles.SegmentBrowser);
 segment_img = uint8(segment_img);
 imshow(segment_img);
-
-guidata(hObject, handles);
-

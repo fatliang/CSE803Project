@@ -80,16 +80,24 @@ function OpenFileButton_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 [filename, pathname, filterindex] = uigetfile({'*.jpg;*.tif;*.png;*.gif'},'Select Image');
 str = [pathname filename];
-clear img size_img mask array_segment num_segment ind_segment
-global img size_img
-img = imread(str);
+img_tmp = imread(str);
+
+global img size_img data_filename mask array_segment num_segment ind_segment hist_cur
+clear img size_img mask array_segment num_segment ind_segment hist_cur data_filename
+global img size_img data_filename 
+
+img = img_tmp;
 size_img = size(img);
-scale_factor = 5e4/(size_img(1)*size_img(2));
+scale_factor = 2e4/(size_img(1)*size_img(2));
 img = imresize(img,min(scale_factor,1));
+size_img = size(img);
 axes(handles.OriginalImageBrowser);
 imshow(img);
 cla(handles.SegmentBrowser);
 guidata(hObject, handles);
+%data_filename is the file name store the data we get
+data_filename = [pathname 'data\' filename];
+
 
 % --- Executes on selection change in popupmenu1.
 function popupmenu1_Callback(hObject, eventdata, handles)
@@ -119,7 +127,14 @@ function CollectButton_Callback(hObject, eventdata, handles)
 % hObject    handle to CollectButton (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
+global hist_cur data_filename ind_segment
+class_name = 'default';
+s1.hist = hist_cur;
+s1.name = class_name;
+filename_append = sprintf('_%d.mat',ind_segment);
+save([data_filename filename_append],'-struct','s1');
 printSegment(eventdata,handles);
+
 
 % --- Executes on button press in DiscardButton.
 function DiscardButton_Callback(hObject, eventdata, handles)
@@ -163,8 +178,9 @@ function ProcessButton_Callback(hObject, eventdata, handles)
 % hObject    handle to ProcessButton (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-clear mask array_segment num_segment ind_segment
-global img mask array_segment num_segment ind_segment
+global img mask array_segment num_segment ind_segment hist_cur
+clear mask array_segment num_segment ind_segment hist_cur
+global mask array_segment num_segment ind_segment
 mask = doSegmentation(img);
 array_segment = unique(mask);
 num_segment = length(array_segment);
@@ -174,8 +190,11 @@ guidata(hObject, handles);
 
 function printSegment(eventdata, handles)
 
+%processing the segment
 global img size_img mask array_segment num_segment ind_segment
-threshold = size_img(1)*size_img(2)/50;
+global hist_cur
+
+threshold = size_img(1)*size_img(2)/40;
 
 if ind_segment > num_segment
     return;
@@ -196,8 +215,11 @@ end
 %do closing
 segment = dilate(segment,5);
 segment = erode(segment,5);
-%
+
+%calculate histogram
+hist_cur = cal_feature_hist(img,segment);
 %show the image
+
 segment_img = zeros(size_img);
 for i = 1:size_img(1)
     for j = 1:size_img(2)

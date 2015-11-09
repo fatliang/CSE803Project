@@ -22,7 +22,7 @@ function varargout = ui_main(varargin)
 
 % Edit the above text to modify the response to help ui_main
 
-% Last Modified by GUIDE v2.5 05-Nov-2015 22:35:53
+% Last Modified by GUIDE v2.5 08-Nov-2015 22:30:27
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -54,6 +54,10 @@ function ui_main_OpeningFcn(hObject, eventdata, handles, varargin)
 
 % Choose default command line output for ui_main
 handles.output = hObject;
+
+%customized
+classList = {'Apple';'Reject'};
+set(handles.classPop,'String',classList);
 
 % Update handles structure
 guidata(hObject, handles);
@@ -99,19 +103,19 @@ guidata(hObject, handles);
 data_filename = [pathname 'data\' filename];
 
 
-% --- Executes on selection change in popupmenu1.
-function popupmenu1_Callback(hObject, eventdata, handles)
-% hObject    handle to popupmenu1 (see GCBO)
+% --- Executes on selection change in classPop.
+function classPop_Callback(hObject, eventdata, handles)
+% hObject    handle to classPop (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-% Hints: contents = get(hObject,'String') returns popupmenu1 contents as cell array
-%        contents{get(hObject,'Value')} returns selected item from popupmenu1
+% Hints: contents = get(hObject,'String') returns classPop contents as cell array
+%        contents{get(hObject,'Value')} returns selected item from classPop
 
 
 % --- Executes during object creation, after setting all properties.
-function popupmenu1_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to popupmenu1 (see GCBO)
+function classPop_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to classPop (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
 
@@ -128,7 +132,9 @@ function CollectButton_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 global hist_cur data_filename ind_segment
-class_name = 'default';
+classList = get(handles.classPop, 'String');
+classInd = get(handles.classPop, 'Value');
+class_name = classList{classInd};
 s1.hist = hist_cur;
 s1.name = class_name;
 filename_append = sprintf('_%d.mat',ind_segment-1);

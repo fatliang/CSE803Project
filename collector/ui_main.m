@@ -58,7 +58,7 @@ handles.output = hObject;
 %customized
 classList = {'Apple';'Reject'};
 set(handles.classPop,'String',classList);
-
+path(path,'../func/');
 % Update handles structure
 guidata(hObject, handles);
 

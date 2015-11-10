@@ -30,3 +30,4 @@ for i = 1:size_img(1)
         end
     end
 end
+segment_img = uint8(segment_img);

@@ -1,5 +1,6 @@
 %the trainer program
-fileDir = 'data';
+path(path,'../func/');
+fileDir = '../collector/data';
 fileList = what(fileDir);
 fileList = fileList.mat;
 data = [];
@@ -14,7 +15,7 @@ end
 SVMApple = fitcsvm(data,labels,'KernelFunction','rbf','Standardize',true,'ClassNames',{'Reject','Apple'});
 
 %test
-img = imread('Apple.jpg','jpg');
+img = imread('app.jpg','jpg');
 %preprocessing
 size_img = size(img);
 scale_factor = sqrt(2e4/(size_img(1)*size_img(2)));

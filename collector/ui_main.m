@@ -92,7 +92,7 @@ global img size_img data_filename
 
 img = img_tmp;
 size_img = size(img);
-scale_factor = 2e4/(size_img(1)*size_img(2));
+scale_factor = sqrt(2e4/(size_img(1)*size_img(2)));
 img = imresize(img,min(scale_factor,1));
 size_img = size(img);
 axes(handles.OriginalImageBrowser);

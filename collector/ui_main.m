@@ -100,7 +100,7 @@ imshow(img);
 cla(handles.SegmentBrowser);
 guidata(hObject, handles);
 %data_filename is the file name store the data we get
-data_filename = [pathname 'data\' filename];
+data_filename = ['data\' filename];
 
 
 % --- Executes on selection change in classPop.

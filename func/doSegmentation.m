@@ -1,6 +1,6 @@
 function res = doSegmentation(img)
 
-img_edge = edge(rgb2gray(img),'canny',[],sqrt(4));
+img_edge = edge(rgb2gray(img),'canny',[],sqrt(8));
 %do closing
 img_edge = dilate(img_edge,5);
 img_edge = erode(img_edge,5);

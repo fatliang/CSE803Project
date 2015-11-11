@@ -20,10 +20,10 @@ for i = 2:size_img(1)-1
         end
         LBP_bi = neighbors(end:-1:1) > img_gray(i,j);
         %feature
-        %feature_bi = [uint32(LBP_bi), uint32(color_bi)];
-        feature_bi = [uint32(LBP_bi)];
+        feature_bi = [uint32(LBP_bi), uint32(color_bi)];
+        %feature_bi = [uint32(LBP_bi)];
         feature = bi2de(feature_bi);
-        res(feature) = res(feature+1)+1;
+        res(feature+1) = res(feature+1)+1;
     end
   end
 end

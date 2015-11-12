@@ -1,0 +1,4 @@
+Thu12 15:52:25,022 - [Impala.Persistency.FileSystem ] Unable to find app.jpg--detector in path 
+Thu12 15:52:25,022 - [Impala.Core.Array.ReadFile ] Don't know how to read 
+Thu12 15:52:25,022 - [Sandbox.koen.mainColorDescriptor ] [ERROR] Could not read input file: is it really a valid image? app.jpg--detector
+Thu12 15:53:25,684 - [Impala.Core.Feature.InterestPointFeature ] [ERROR] Unknown detector mode: harrislaplace--descriptor

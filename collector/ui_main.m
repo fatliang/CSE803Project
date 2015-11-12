@@ -59,6 +59,8 @@ handles.output = hObject;
 classList = {'Apple';'Reject'};
 set(handles.classPop,'String',classList);
 path(path,'../func/');
+path(path,'../jseg/');
+path(path,'../sift/');
 % Update handles structure
 guidata(hObject, handles);
 
@@ -86,9 +88,9 @@ function OpenFileButton_Callback(hObject, eventdata, handles)
 str = [pathname filename];
 img_tmp = imread(str);
 
-global img size_img data_filename mask array_segment num_segment ind_segment hist_cur
-clear img size_img mask array_segment num_segment ind_segment hist_cur data_filename
-global img size_img data_filename 
+global img size_img data_filename mask array_segment num_segment ind_segment hist_cur des_global des_loc des_local segment
+clear img size_img mask array_segment num_segment ind_segment hist_cur data_filename des_global des_loc des_local segment
+global img size_img data_filename dir_path
 
 img = img_tmp;
 size_img = size(img);
@@ -100,7 +102,8 @@ imshow(img);
 cla(handles.SegmentBrowser);
 guidata(hObject, handles);
 %data_filename is the file name store the data we get
-data_filename = ['data\' filename];
+data_filename = filename;
+dir_path = pathname;
 
 
 % --- Executes on selection change in classPop.
@@ -131,16 +134,27 @@ function CollectButton_Callback(hObject, eventdata, handles)
 % hObject    handle to CollectButton (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-global hist_cur data_filename ind_segment
+global hist_cur data_filename ind_segment des_local dir_path segment
 classList = get(handles.classPop, 'String');
 classInd = get(handles.classPop, 'Value');
 class_name = classList{classInd};
+filename_append = sprintf('_%d.mat',ind_segment-1);
+%color hist
 s1.hist = hist_cur;
 s1.name = class_name;
-filename_append = sprintf('_%d.mat',ind_segment-1);
-save([data_filename filename_append],'-struct','s1');
-printSegment(eventdata,handles);
+save(['./data/color/' data_filename filename_append],'-struct','s1');
+%store the local sift
+s2.des = des_local;
+s2.name = class_name;
+save(['./data/sift/' data_filename filename_append],'-struct','s2');
+%
+%the mask
+s3.mask = segment;
+s3.name = class_name;
+save([dir_path 'mask/' data_filename filename_append],'-struct','s3');
 
+printSegment(eventdata,handles);
+disp('done');
 
 % --- Executes on button press in DiscardButton.
 function DiscardButton_Callback(hObject, eventdata, handles)
@@ -184,10 +198,24 @@ function ProcessButton_Callback(hObject, eventdata, handles)
 % hObject    handle to ProcessButton (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-global img mask array_segment num_segment ind_segment hist_cur
-clear mask array_segment num_segment ind_segment hist_cur
-global mask array_segment num_segment ind_segment
+global img mask array_segment num_segment ind_segment hist_cur des_global des_loc des_local
+clear mask array_segment num_segment ind_segment hist_cur des_global des_loc des_local
+global mask array_segment num_segment ind_segment des_global des_loc
+
 mask = doSegmentation(img);
+
+%record mask
+%imwrite(uint8(mask),[dir_path data_filename '_mask.gif'],'gif');
+%
+%use jseg algorithm
+%img_smoothed = imgaussfilt(img,4);
+%imwrite(img_smoothed,'tmp_original.jpg','jpg');
+%mask = jseg('tmp_original.jpg');
+%
+%sift
+imwrite(img,'img_original_sift.jpg','jpg');
+[img_p des_global des_loc] = sift('img_original_sift.jpg');
+%
 array_segment = unique(mask);
 num_segment = length(array_segment);
 ind_segment = 1;%the index of the segment to show
@@ -197,8 +225,12 @@ guidata(hObject, handles);
 function printSegment(eventdata, handles)
 
 %processing the segment
-global img size_img mask array_segment num_segment ind_segment
-global hist_cur
+global img size_img mask array_segment num_segment ind_segment des_global des_loc
+global hist_cur des_local segment;
+
+clear segment
+
+global segment
 
 threshold = size_img(1)*size_img(2)/40;
 
@@ -219,9 +251,12 @@ while area < threshold || array_segment(ind_segment-1) == 0
 end
 
 %do closing
-segment = dilate(segment,5);
-segment = erode(segment,5);
+%segment = dilate(segment,11);
+%segment = erode(segment,11);
+se = strel('square',11);
+segment = imclose(segment,se);
 
+%
 %calculate histogram
 hist_cur = cal_feature_hist(img,segment);
 %show the image
@@ -234,7 +269,8 @@ for i = 1:size_img(1)
         end
     end
 end
-
+segment_img = mark_keypoints(segment_img,des_loc,segment);
+des_local = local_sift(des_global,des_loc,segment);
 axes(handles.SegmentBrowser);
 segment_img = uint8(segment_img);
 imshow(segment_img);

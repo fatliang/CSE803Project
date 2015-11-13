@@ -61,6 +61,7 @@ set(handles.classPop,'String',classList);
 path(path,'../func/');
 path(path,'../jseg/');
 path(path,'../sift/');
+path(path,'../csift/');
 % Update handles structure
 guidata(hObject, handles);
 
@@ -162,6 +163,7 @@ function DiscardButton_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 printSegment(eventdata,handles);
+disp('done');
 
 
 function edit1_Callback(hObject, eventdata, handles)
@@ -199,23 +201,40 @@ function ProcessButton_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 global img mask array_segment num_segment ind_segment hist_cur des_global des_loc des_local
-clear mask array_segment num_segment ind_segment hist_cur des_global des_loc des_local
-global mask array_segment num_segment ind_segment des_global des_loc
+clear mask array_segment num_segment ind_segment hist_cur des_global des_loc des_local 
+global mask array_segment num_segment ind_segment des_global des_loc size_img
 
-mask = doSegmentation(img);
+%mask = doSegmentation(img);
 
 %record mask
 %imwrite(uint8(mask),[dir_path data_filename '_mask.gif'],'gif');
 %
 %use jseg algorithm
-%img_smoothed = imgaussfilt(img,4);
+%img_smoothed = imgaussfilt(img,8);
 %imwrite(img_smoothed,'tmp_original.jpg','jpg');
 %mask = jseg('tmp_original.jpg');
+%mask = merge_region(mask);
+%
+%circle detector
+%img_smoothed = imgaussfilt(img,2);
+[mask centers radii] = circle_seg(img);
+
+%imshow(img);
 %
 %sift
 imwrite(img,'img_original_sift.jpg','jpg');
 [img_p des_global des_loc] = sift('img_original_sift.jpg');
+
+[des_c_global des_c_loc] = csift('img_original_sift.jpg');
 %
+%kmeans segmentation based on feature location
+[idx, cen, sumd] = kmeans([des_loc(:,1:2); des_c_loc(:,1:2)],2);
+radi_kmean = sqrt(sumd/length(idx)*2);
+%
+img_des_c = mark_keypoints(img,des_c_loc,ones(size_img(1:2)));
+axes(handles.OriginalImageBrowser);
+imshow(img_des_c);
+viscircles(cen(:,2:-1:1),radi_kmean);
 array_segment = unique(mask);
 num_segment = length(array_segment);
 ind_segment = 1;%the index of the segment to show
@@ -237,6 +256,7 @@ threshold = size_img(1)*size_img(2)/40;
 if ind_segment > num_segment
     return;
 end
+
 segment = (mask == array_segment(ind_segment));
 area = sum(sum(segment));
 ind_segment = ind_segment+1;
@@ -253,8 +273,8 @@ end
 %do closing
 %segment = dilate(segment,11);
 %segment = erode(segment,11);
-se = strel('square',11);
-segment = imclose(segment,se);
+%se = strel('square',11);
+%segment = imclose(segment,se);
 
 %
 %calculate histogram
